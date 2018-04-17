@@ -6,10 +6,15 @@
   "scripts": {
     "start": "webpack-dev-server",
     "build": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "github":"git push origin master"
   },
   "author": "Smith Saintil",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url" : "https://github.com/smiths15/react_power_up"
+  },
   "dependencies": {
     "react": "^16.3.2",
     "react-dom": "^16.3.2"

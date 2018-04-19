@@ -11,6 +11,7 @@ import React from 'react';
 //   } 
 // }
 
+//Comment component
 class Comment extends React.Component {
   render() {
     return(
@@ -29,11 +30,51 @@ class Comment extends React.Component {
   }
 }
 
+
+class CommentForm extends React.Component {
+  render() {
+    return(
+      <form className="comment-form" onSubmit={this._handleSubmit.bind(this)}>
+        <label>Join the Discussion</label>
+        <div className="form-group comment-form-fields">
+          <input placeholder="Name:" className="form-control" ref={(input) => this._author = input}/>
+          <br />
+          <textarea placeholder="Comment:" className="form-control" ref={(textarea) => this._body = textarea}>
+          </textarea>
+        </div>
+        <div className="comment-form-actions form-group">
+          <button type="submit" className="btn btn-primary btn-sm">
+            Post Comment
+          </button>
+        </div>
+      </form>
+      );
+  }
+
+
+  _handleSubmit(event) {
+    event.preventDefault();
+
+    let author = this._author;
+    let body = this._body;
+
+    this.props.addComment(author.value, body.value);
+  }
+}
+
+
+
 export default class CommentBox extends React.Component {
   constructor(){
     super();
 
-    this.state = {showComments: false};
+    this.state = {
+      showComments: false,
+      comments: [
+      {id: 1, author: 'Morgan McCircuit', body: 'Great picture!'},
+      {id: 2, author: 'Bending Bender', body: 'Excellent stuff!'}
+      ]
+    };
   }
 
   render() {
@@ -43,11 +84,12 @@ export default class CommentBox extends React.Component {
     
     if (this.state.showComments) {
       buttonText = 'Hide Comments';
-      commentNodes = <div className="comment-list">{comments}</div>
+      commentNodes = <div className="comment-list">{comments}</div>;
     }
 
     return(
-      <div className = "comment-box">
+      <div className="comment-box">
+        <CommentForm addComment={this._addComment.bind(this)} />
         <button type="button" className="btn btn-primary btn-sm float-right" onClick={this._handleClick.bind(this)}>
         {buttonText}
         </button>
@@ -59,6 +101,15 @@ export default class CommentBox extends React.Component {
 
   }
 
+  _addComment(author, body){
+    const comment = {
+      id: this.state.comments.length +1,
+      author,
+      body
+    };
+    this.setState({comments: this.state.comments.concat([comment]) }); 
+  }
+
   _handleClick(){
     this.setState({
       showComments: !this.state.showComments
@@ -66,12 +117,8 @@ export default class CommentBox extends React.Component {
   }
 
   _getComments() {
-    const commentList = [
-      {id: 1, author: 'Morgan McCircuit', body: 'Great picture!'},
-      {id: 2, author: 'Bending Bender', body: 'Excellent stuff!'}
-    ];
-
-    return commentList.map((comment)=> {
+    
+    return this.state.comments.map((comment)=> {
       return (
         <Comment author={comment.author} body={comment.body} key={comment.id} />
       );

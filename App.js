@@ -2,15 +2,6 @@ import React from 'react';
 
 
 
-
-// export default class App extends React.Component {
-//   render() {
-//     return(
-//       <h2>Hello World!</h2>
-//       );
-//   } 
-// }
-
 //Comment component
 class Comment extends React.Component {
   render() {
@@ -21,12 +12,19 @@ class Comment extends React.Component {
           {this.props.body}
         </p>
         <p className="comment-footer">
-          <a href="#" className="comment-footer-delete">
+          <a href="#" className="comment-footer-delete" onClick={this._handleDelete.bind(this)}>
           Delete Comment
           </a>
         </p>
       </div>
       );
+  }
+  _handleDelete(e){
+    e.preventDefault();
+    
+    if (confirm('Are you sure?')) {
+      this.props.onDelete(this.props.id);    
+    }  
   }
 }
 
@@ -60,6 +58,7 @@ class CommentForm extends React.Component {
 
     this.props.addComment(author.value, body.value);
   }
+
 }
 
 
@@ -70,11 +69,12 @@ export default class CommentBox extends React.Component {
 
     this.state = {
       showComments: false,
-      comments: [
-      {id: 1, author: 'Morgan McCircuit', body: 'Great picture!'},
-      {id: 2, author: 'Bending Bender', body: 'Excellent stuff!'}
-      ]
+      comments: []
     };
+  }
+
+  componentWillMount(){
+    this._fetchComments();
   }
 
   render() {
@@ -100,16 +100,48 @@ export default class CommentBox extends React.Component {
     );
 
   }
-
-  _addComment(author, body){
-    const comment = {
-      id: this.state.comments.length +1,
-      author,
-      body
-    };
-    this.setState({comments: this.state.comments.concat([comment]) }); 
+//Polling or checking server for updated data every 5 secs
+  componentDidMount(){
+    this._timer = setInterval(
+      ()=> this._fetchComments(),
+      10000
+    );
+  }
+//Runs when component is about to be removed from the DOM (e.g., change pages)
+  componentWillUnmount(){
+    clearInterval(this._timer);
   }
 
+  //Making ajax request to server to get data
+  _fetchComments(){
+    jQuery.ajax({
+      method: 'GET',
+      url: 'comments.json',
+      success: (comments) => {
+        this.setState({comments})
+      }
+    });
+  }
+
+  //Method to delete comments
+  _deleteComments(commentID){
+    const comments = this.state.comments.filter(
+      comment => comment.id !== commentID
+      );
+    this.setState({comments});
+  }
+
+  _addComment(author, body){
+    const comment = {author, body};
+
+    jQuery.post('./comments.json', {comment}).then(comment =>{
+      this.setState({comments: this.state.comments.concat([comment]) }); 
+    });
+    
+  }
+  
+
+  //updates button string when clicked
   _handleClick(){
     this.setState({
       showComments: !this.state.showComments
@@ -117,10 +149,13 @@ export default class CommentBox extends React.Component {
   }
 
   _getComments() {
-    
     return this.state.comments.map((comment)=> {
       return (
-        <Comment author={comment.author} body={comment.body} key={comment.id} />
+        <Comment 
+        author={comment.author}
+        body={comment.body}
+        key={comment.id}
+        onDelete={this._deleteComments.bind(this)} />
       );
     });
   }
